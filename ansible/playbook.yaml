@@ -1,0 +1,61 @@
+- hosts: localhost
+  tasks:
+    - name: Install nagios-alerta requirements
+      apt:
+        pkg:
+        - git
+        - curl
+        - gcc
+        - make
+        - libcurl4-openssl-dev # libcurl-dev for Ubuntu Bionic 18.04
+        - libjansson-dev
+        # Required by make
+        - pkg-config
+      tags: install
+
+    - name: Clone nagios-alerta
+      git:
+        repo: "https://github.com/alerta/nagios-alerta"
+        version: "master"
+        dest: "/opt/nagios-alerta"
+      tags: install
+
+    - name: Run make nagios3
+      make:
+        chdir: "/opt/nagios-alerta"
+        target: nagios3
+      tags: install
+
+    - name: Run sudo make install
+      make:
+        chdir: "/opt/nagios-alerta"
+        target: install
+      become: yes
+      tags: install
+
+    - name: Get api_url from relation if not set in config
+      set_fact:
+        api_url: "http://{{ relations['alerta-host'][0]['ingress-address'] }}:{{ relations['alerta-host'][0]['port'] }}/api/"
+      when: api_url | length == 0
+      tags: install, config
+
+    - name: Add broker_module to Nagios configuration
+      lineinfile:
+        path: /etc/nagios3/nagios.cfg
+        regexp: '^broker_module='
+        line: >
+          broker_module=/usr/lib/nagios/alerta-neb.o
+          {{ api_url }}
+          env={{ env }}
+          key={{ api_key }}
+          {{ 'customer=' + customer if customer else '' }}
+          {{ 'hard_only=1' if hard_only else '' }}
+          {{ 'debug=1' if debug else '' }}
+      notify: restart nagios
+      tags: install, config
+
+  handlers:
+    - name: restart nagios
+      service:
+        name: nagios3
+        state: restarted

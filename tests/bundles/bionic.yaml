@@ -1,0 +1,15 @@
+series: bionic
+applications:
+  alerta:
+    charm: cs:~huntdatacenter/alerta
+    num_units: 1
+  nagios-alerta-gateway:
+    charm: /tmp/charm-builds/nagios-alerta-gateway
+  nagios:
+    charm: cs:nagios
+    num_units: 1
+relations:
+- - alerta:website
+  - nagios-alerta-gateway:alerta-host
+- - nagios:juju-info
+  - nagios-alerta-gateway:nagios-host

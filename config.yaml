@@ -1,0 +1,33 @@
+options:
+  api_key:
+    type: string
+    default: ""
+    description: |
+      The API key for Alerta which must be set manually.
+      The API key requires the `write:alerts` scope.
+  api_url:
+    type: string
+    default: ""
+    description: |
+      Alerta API URL to an Alerta server that is not related to this charm.
+      If this is set, the charm will not use the charm relation information.
+  customer:
+    type: string
+    default: ""
+    description: |
+      Name of the Alerta customer namespace for these checks.
+  debug:
+    type: boolean
+    default: false
+    description: |
+      Enable debug mode.
+  env:
+    type: string
+    default: "Production"
+    description: |
+      Name of the Alerta environment namespace for these checks.
+  hard_only:
+    type: boolean
+    default: false
+    description: |
+      Forward check results in hard state only if true.
